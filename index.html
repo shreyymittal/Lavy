@@ -3,11 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Lavy 🤍</title>
+  <title>Lavy 💗</title>
 
-  <!-- Link preview (optional) -->
-  <meta property="og:title" content="Lavy, will you be my valentine? 🤍" />
-  <meta property="og:description" content="Open pls 🤍" />
+  <meta property="og:title" content="Lavy, will you be my valentine? 💗" />
+  <meta property="og:description" content="Open pls 💗" />
   <meta property="og:type" content="website" />
 
   <style>
@@ -36,13 +35,13 @@
       background: #ffeef5;
       font-size: 34px;
     }
-    h1 { margin: 8px 0 14px; font-size: 22px; font-weight: 700; }
+    h1 { margin: 8px 0 14px; font-size: 22px; font-weight: 800; }
     h1 .name { color: var(--accent); }
 
     .btnRow { position: relative; height: 86px; }
     .btn {
       border: 0; border-radius: 999px; cursor: pointer;
-      padding: 14px 18px; font-weight: 800;
+      padding: 14px 18px; font-weight: 900;
       transition: transform .08s ease;
       user-select: none;
     }
@@ -73,27 +72,30 @@
       padding: 14px 12px;
       background: #fff3f7;
       border-radius: 14px;
+      font-weight: 900;
+      color: #7a1236;
+      font-size: 18px;
+      line-height: 1.25;
     }
-    .bouquet { font-size: 32px; line-height: 1.1; }
-    .love { margin: 8px 0; font-size: 20px; font-weight: 900; color: #7a1236; }
+    .result .heart { color: var(--accent); }
 
     /* floating flowers */
     .flower {
       position: fixed; left: 0; top: 0;
-      font-size: 18px;
       pointer-events: none;
-      opacity: .9;
+      opacity: .92;
       animation: floatUp linear forwards;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,.12));
     }
     @keyframes floatUp {
-      from { transform: translate(var(--x), 110vh) scale(.9); }
-      to   { transform: translate(var(--x2), -10vh) scale(1.25); opacity: 0; }
+      from { transform: translate(var(--x), 110vh) rotate(0deg) scale(var(--s)); }
+      to   { transform: translate(var(--x2), -12vh) rotate(260deg) scale(calc(var(--s) + .2)); opacity: 0; }
     }
   </style>
 </head>
 <body>
   <div class="card" id="card">
-    <div class="bear">🐻‍❄️🤍</div>
+    <div class="bear">🐻‍❄️💗</div>
     <h1><span class="name">Lavy</span>, will you be my valentine?</h1>
 
     <div class="btnRow" id="btnRow">
@@ -104,11 +106,15 @@
     <div class="hint">Try to catch the “No” button… if you can 😈</div>
 
     <div class="result" id="result">
-      <div class="bouquet">💮💮💮</div>
-      <div class="love">I love you, Lavy 🤍</div>
-      <div class="bouquet">💮💮💮</div>
+      Yayy, You are now Shrey's Valentine <span class="heart">💗</span>
     </div>
   </div>
+
+  <!-- IMPORTANT:
+       Put a file named "music.mp3" in the SAME repo (root) as index.html.
+       Example: Add file -> Upload files -> music.mp3
+  -->
+  <audio id="bgm" src="music.mp3" preload="auto" loop></audio>
 
   <script>
     const noBtn = document.getElementById("noBtn");
@@ -116,6 +122,33 @@
     const btnRow = document.getElementById("btnRow");
     const result = document.getElementById("result");
     const hint = document.querySelector(".hint");
+    const bgm = document.getElementById("bgm");
+
+    // Autoplay reality check:
+    // Most browsers BLOCK autoplay with sound until user interacts.
+    // So we: try to start muted on load, then enable sound on first click/tap (Yes or anywhere).
+    async function tryStartMusicMuted() {
+      try {
+        bgm.muted = true;
+        await bgm.play();
+      } catch (e) {
+        // ignored: browser blocked it
+      }
+    }
+    tryStartMusicMuted();
+
+    function enableMusicWithSound() {
+      // called on first user interaction
+      document.removeEventListener("pointerdown", enableMusicWithSound);
+      document.removeEventListener("keydown", enableMusicWithSound);
+      try {
+        bgm.muted = false;
+        bgm.volume = 0.35; // soft
+        bgm.play();
+      } catch (e) {}
+    }
+    document.addEventListener("pointerdown", enableMusicWithSound, { once: true });
+    document.addEventListener("keydown", enableMusicWithSound, { once: true });
 
     function moveNo() {
       const pad = 6;
@@ -132,42 +165,50 @@
       noBtn.style.top  = `${y}px`;
     }
 
-    // Make "No" dodge mouse + touch
     ["mouseenter","mouseover","touchstart","click"].forEach(evt =>
       noBtn.addEventListener(evt, (e) => { e.preventDefault(); moveNo(); }, { passive: false })
     );
 
     yesBtn.addEventListener("click", () => {
+      // ensure music starts with sound after interaction
+      enableMusicWithSound();
+
       noBtn.style.display = "none";
       yesBtn.style.display = "none";
       hint.style.display = "none";
       result.style.display = "block";
-      burstLilies();
+      megaFlowerStorm();
     });
 
-    function burstLilies() {
-      for (let i = 0; i < 26; i++) spawnLily();
-      const id = setInterval(spawnLily, 220);
-      setTimeout(() => clearInterval(id), 4200);
+    // MORE FLOWERS: more initial burst + longer storm + variety in size
+    function megaFlowerStorm() {
+      for (let i = 0; i < 60; i++) spawnFlower();          // big initial burst
+      const id = setInterval(spawnFlower, 120);            // dense rain
+      setTimeout(() => clearInterval(id), 7000);           // longer duration
     }
 
-    function spawnLily() {
+    function spawnFlower() {
       const f = document.createElement("div");
       f.className = "flower";
-      // "lily vibe" emojis that render on most phones
-      f.textContent = ["💮","🤍","💐","🌿","🪷"][Math.floor(Math.random() * 5)];
+
+      // "flower vibe" emojis that render on most phones
+      const icons = ["💮","🌸","🌷","💐","🪷","🌺","🤍","🌿"];
+      f.textContent = icons[Math.floor(Math.random() * icons.length)];
 
       const x = Math.random() * 100;
-      const x2 = x + (Math.random() * 30 - 15);
+      const x2 = x + (Math.random() * 34 - 17);
+      const s = (0.9 + Math.random() * 1.3).toFixed(2);    // size 0.9x to 2.2x
       f.style.setProperty("--x", `${x}vw`);
       f.style.setProperty("--x2", `${x2}vw`);
-      f.style.animationDuration = `${3 + Math.random() * 2.5}s`;
+      f.style.setProperty("--s", s);
+
+      f.style.fontSize = `${16 + Math.random() * 18}px`;   // 16px to 34px
+      f.style.animationDuration = `${3.5 + Math.random() * 3.0}s`;
 
       document.body.appendChild(f);
-      setTimeout(() => f.remove(), 6000);
+      setTimeout(() => f.remove(), 8000);
     }
 
-    // Start with a random "No" position
     moveNo();
   </script>
 </body>
